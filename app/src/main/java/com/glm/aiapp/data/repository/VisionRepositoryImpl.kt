@@ -5,8 +5,8 @@ import com.glm.aiapp.data.dto.ChatCompletionRequest
 import com.glm.aiapp.data.dto.ChatMessage
 import com.glm.aiapp.data.dto.ThinkingConfig
 import com.glm.aiapp.domain.model.Attachment
-import com.glm.aiapp.domain.model.VisionRepository
 import com.glm.aiapp.domain.repository.SettingsRepository
+import com.glm.aiapp.domain.repository.VisionRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.*
 import javax.inject.Inject

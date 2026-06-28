@@ -9,7 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddAPhoto
-import androidx.compose.material.icons.filled.Analysis
+import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Attachment
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -98,7 +98,7 @@ fun VisionScreen(vm: VisionViewModel = hiltViewModel()) {
             modifier = Modifier.fillMaxWidth(),
             enabled = state.selectedUri != null && !state.isLoading
         ) {
-            Icon(Icons.Filled.Analysis, contentDescription = null)
+            Icon(Icons.Filled.Analytics, contentDescription = null)
             Spacer(Modifier.width(6.dp))
             Text(if (state.isLoading) "Analyzing…" else "Analyze")
         }

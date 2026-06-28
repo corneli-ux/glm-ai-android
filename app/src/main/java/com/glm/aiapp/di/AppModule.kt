@@ -19,8 +19,7 @@ import android.content.Context
 import androidx.room.Room
 import com.glm.aiapp.domain.repository.*
 import retrofit2.Retrofit
-import retrofit2.converter.scalars.ScalarsConverterFactory
-import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import okhttp3.MediaType.Companion.toMediaType
 
 @Module
@@ -59,7 +58,6 @@ object AppModule {
         return Retrofit.Builder()
             .baseUrl("https://open.bigmodel.cn/api/paas/v4/")
             .client(client)
-            .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()
     }

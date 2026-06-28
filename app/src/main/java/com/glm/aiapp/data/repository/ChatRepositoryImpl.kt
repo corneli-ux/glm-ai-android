@@ -100,9 +100,7 @@ class ChatRepositoryImpl @Inject constructor(
             val response = api.chatCompletion(request.copy(stream = false))
             response.choices.firstOrNull()?.message?.content?.let { raw ->
                 val text = runCatching { json.decodeFromString<JsonElement>(raw.toString()) }
-                    .map { element ->
-                        element.jsonPrimitive.contentOrNull() ?: raw.toString()
-                    }
+                    .map { element -> element.jsonPrimitive.content }
                     .getOrElse { raw.toString() }
                 contentBuilder.append(text)
                 onToken(text)
