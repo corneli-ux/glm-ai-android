@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GLM AI</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_chat">Chat</string>
+    <string name="nav_vision">Vision</string>
+    <string name="nav_create">Create</string>
+    <string name="nav_tools">Tools</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Chat -->
+    <string name="chat_hint">Message GLM…</string>
+    <string name="chat_new">New chat</string>
+    <string name="chat_empty_title">Start a conversation</string>
+    <string name="chat_empty_subtitle">Ask anything — GLM streams responses in real time.</string>
+    <string name="chat_thinking">Thinking…</string>
+    <string name="chat_clear">Clear conversation</string>
+
+    <!-- Vision -->
+    <string name="vision_title">Vision</string>
+    <string name="vision_take_photo">Take photo</string>
+    <string name="vision_pick_image">Pick image</string>
+    <string name="vision_pick_file">Pick file</string>
+    <string name="vision_prompt_hint">Ask about the image…</string>
+    <string name="vision_analyze">Analyze</string>
+
+    <!-- Image gen -->
+    <string name="image_title">Image Studio</string>
+    <string name="image_prompt_hint">Describe the image you want…</string>
+    <string name="image_generate">Generate</string>
+    <string name="image_size">Size</string>
+    <string name="image_gallery">Gallery</string>
+
+    <!-- Video gen -->
+    <string name="video_title">Video Studio</string>
+    <string name="video_prompt_hint">Describe the video…</string>
+    <string name="video_create">Create video</string>
+    <string name="video_quality">Quality</string>
+    <string name="video_status_processing">Processing…</string>
+    <string name="video_status_success">Ready</string>
+    <string name="video_status_fail">Failed</string>
+
+    <!-- Speech -->
+    <string name="speech_title">Speech</string>
+    <string name="speech_tts">Text to speech</string>
+    <string name="speech_asr">Speech to text</string>
+    <string name="speech_play">Play</string>
+    <string name="speech_record">Record</string>
+    <string name="speech_stop">Stop</string>
+
+    <!-- Search & Reader -->
+    <string name="search_title">Web Search</string>
+    <string name="search_hint">Search the web…</string>
+    <string name="reader_title">Page Reader</string>
+    <string name="reader_hint">Paste a URL…</string>
+    <string name="reader_read">Read page</string>
+
+    <!-- Fine-tune -->
+    <string name="finetune_title">Fine-tune Studio</string>
+    <string name="finetune_datasets">Datasets</string>
+    <string name="finetune_jobs">Jobs</string>
+    <string name="finetune_new">New job</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_api_key">API key</string>
+    <string name="settings_base_url">Base URL</string>
+    <string name="settings_model">Default model</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_streaming">Stream responses</string>
+    <string name="settings_thinking">Enable thinking mode</string>
+    <string name="settings_temperature">Temperature</string>
+    <string name="settings_max_tokens">Max tokens</string>
+    <string name="settings_about">About</string>
+
+    <!-- Common -->
+    <string name="common_send">Send</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_save">Save</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_retry">Retry</string>
+    <string name="common_copy">Copy</string>
+    <string name="common_share">Share</string>
+    <string name="common_loading">Loading…</string>
+    <string name="common_error">Something went wrong</string>
+    <string name="common_empty">Nothing here yet</string>
+</resources>

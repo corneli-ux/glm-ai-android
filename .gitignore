@@ -1,0 +1,35 @@
+# Built artifacts
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Build directories
+build/
+.gradle/
+.cxx/
+out/
+intermediates/
+tmp/
+
+# Local config (DO NOT COMMIT)
+local.properties
+keystore.properties
+release.keystore
+*.keystore
+*.jks
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+captures/
+.externalNativeBuild/
+
+# Logs
+*.log
+
+# Secrets
+.env
+.env.*
+secrets.properties
