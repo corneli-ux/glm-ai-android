@@ -34,6 +34,14 @@ android {
     }
 
     signingConfigs {
+        create("debug") {
+            // Use a committed debug keystore so the SHA-1 is stable across CI builds.
+            // This is REQUIRED for Google Sign-In — the SHA-1 must be registered in Firebase.
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
         create("release") {
             if (keystoreProperties.isNotEmpty()) {
                 keyAlias = keystoreProperties["keyAlias"] as String?
@@ -47,9 +55,7 @@ android {
     buildTypes {
         debug {
             isMinifyEnabled = false
-            // NOTE: Do NOT use applicationIdSuffix here — Firebase Google Sign-In
-            // requires the package name to match exactly what's registered in
-            // the Firebase Console (com.glm.aiapp).
+            signingConfig = signingConfigs.getByName("debug")
         }
         release {
             isMinifyEnabled = true

@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "714767483567-72nes6httqnmervppa63qb9i9877sii1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.glm.aiapp",
+            "certificate_hash": "f53a89d41dff5be54bab275c180650ade8f26f65"
+          }
+        },
+        {
           "client_id": "714767483567-jgo1ls597k3gqs7pcu97j941rndrs9bh.apps.googleusercontent.com",
           "client_type": 3
         }
