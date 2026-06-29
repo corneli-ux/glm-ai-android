@@ -44,6 +44,15 @@ jobs:
       - name: Generate Gradle wrapper jar
         run: gradle wrapper --gradle-version 8.10.2 --distribution-type bin
 
+      - name: Print signing SHA-1 (for Firebase Console)
+        run: |
+          echo "=== Debug keystore SHA-1 fingerprint ==="
+          ./gradlew signingReport --no-daemon 2>/dev/null | grep -E "SHA1|Variant|---------" | head -10
+          echo ""
+          echo "=== Add this SHA-1 to Firebase Console ==="
+          echo "Go to: https://console.firebase.google.com/project/pullarao-appforge-55a8f/settings/general/android"
+          echo "Under 'SHA certificate fingerprints', add the SHA-1 above"
+
       - name: Build debug APK
         run: ./gradlew assembleDebug --no-daemon --stacktrace
 
