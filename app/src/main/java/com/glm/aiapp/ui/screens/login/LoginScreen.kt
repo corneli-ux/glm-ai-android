@@ -30,8 +30,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
 
 @Composable
 fun LoginScreen(vm: LoginViewModel = hiltViewModel()) {
@@ -49,38 +47,14 @@ fun LoginScreen(vm: LoginViewModel = hiltViewModel()) {
                     .getResult(ApiException::class.java)
                 val idToken = account?.idToken
                 if (idToken != null) {
-                    // Exchange Google ID token for Firebase credential
-                    val credential = GoogleAuthProvider.getCredential(idToken, null)
-                    FirebaseAuth.getInstance().signInWithCredential(credential)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                val firebaseUser = task.result?.user
-                                if (firebaseUser != null) {
-                                    firebaseUser.getIdToken(true)
-                                        .addOnCompleteListener { tokenTask ->
-                                            if (tokenTask.isSuccessful) {
-                                                val firebaseToken = tokenTask.result?.token
-                                                if (firebaseToken != null) {
-                                                    vm.loginWithGoogle(firebaseToken)
-                                                } else {
-                                                    vm.clearError()
-                                                }
-                                            } else {
-                                                vm.clearError()
-                                            }
-                                        }
-                                }
-                            } else {
-                                vm.clearError()
-                            }
-                        }
+                    // Send Google ID token directly to platform — platform verifies it
+                    vm.loginWithGoogle(idToken)
                 } else {
-                    // Got an account but no ID token — usually means web client ID is wrong
-                    vm.clearError()
+                    vm.setError("Google returned no ID token. The Web Client ID may be wrong. Check that Google Sign-In is enabled in Firebase Console and the SHA-1 fingerprint is added.")
                 }
             } catch (e: ApiException) {
                 val msg = when (e.statusCode) {
-                    10 -> "Google Sign-In config error. Check: 1) package name is com.glm.aiapp, 2) SHA-1 88:3F:61:28:7B:28:90:28:67:65:A9:61:9E:A3:C1:5B:25:B0:84:2D is in Firebase Console"
+                    10 -> "Google Sign-In config error (DEVELOPER_ERROR). Check: 1) package name is com.glm.aiapp, 2) SHA-1 is in Firebase Console"
                     12500 -> "Google Play services error. Update Google Play services on your device."
                     12501 -> "Sign-in cancelled"
                     else -> "Google Sign-In error (code ${e.statusCode}): ${e.message}"
@@ -91,23 +65,13 @@ fun LoginScreen(vm: LoginViewModel = hiltViewModel()) {
     }
 
     fun launchGoogleSignIn() {
-        // Web Client ID auto-created by Firebase when Google Sign-In is enabled.
-        // Format: <project_number>.apps.googleusercontent.com
-        // We try the string resource first (populated if google-services.json has oauth_client),
-        // then fall back to the project number format (standard for Firebase).
-        val webClientId = try {
-            val resId = context.resources.getIdentifier("default_web_client_id", "string", context.packageName)
-            if (resId != 0) context.getString(resId) else "714767483567.apps.googleusercontent.com"
-        } catch (_: Exception) {
-            "714767483567.apps.googleusercontent.com"
-        }
+        val webClientId = "714767483567.apps.googleusercontent.com"
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(webClientId)
             .requestEmail()
             .build()
         val client = GoogleSignIn.getClient(context, gso)
-        // Sign out first to show account picker every time
         client.signOut().addOnCompleteListener {
             googleSignInLauncher.launch(client.signInIntent)
         }
@@ -267,6 +231,7 @@ fun LoginScreen(vm: LoginViewModel = hiltViewModel()) {
                 }
             }
 
+            // Error display
             AnimatedVisibility(visible = state.error != null, enter = fadeIn() + expandVertically(), exit = fadeOut() + shrinkVertically()) {
                 state.error?.let { msg ->
                     Spacer(Modifier.height(16.dp))
@@ -274,6 +239,12 @@ fun LoginScreen(vm: LoginViewModel = hiltViewModel()) {
                         Text(msg, color = Color(0xFFFCA5A5), fontSize = 13.sp, modifier = Modifier.padding(12.dp), textAlign = TextAlign.Center)
                     }
                 }
+            }
+
+            // Loading indicator
+            if (state.isSubmitting) {
+                Spacer(Modifier.height(16.dp))
+                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp, color = Color(0xFF10B981))
             }
 
             Spacer(Modifier.height(40.dp))
