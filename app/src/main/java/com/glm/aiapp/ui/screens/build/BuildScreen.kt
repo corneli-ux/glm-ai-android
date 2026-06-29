@@ -9,7 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Cloud
-import androidx.compose.material.icons.filled.Github
+import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Rocket
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -138,7 +138,7 @@ private fun ProjectCard(p: ProjectSummary, onClick: () -> Unit) {
             Text("${p.appType.replace("_", " ")} · ${p.framework ?: ""} · ${p.fileCount} files", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (p.githubRepoUrl != null) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Github, contentDescription = null, modifier = Modifier.size(14.dp))
+                    Icon(Icons.Filled.Code, contentDescription = null, modifier = Modifier.size(14.dp))
                     Spacer(Modifier.width(4.dp))
                     Text("Pushed to GitHub", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                 }
@@ -178,7 +178,7 @@ private fun ProjectDetailView(
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = onPush, enabled = !isPushing && githubConnected && project.fileCount > 0, modifier = Modifier.weight(1f)) {
                 if (isPushing) CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
-                else Icon(Icons.Filled.Github, contentDescription = null, modifier = Modifier.size(18.dp))
+                else Icon(Icons.Filled.Code, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
                 Text(if (isPushing) "Pushing…" else if (project.githubRepoUrl != null) "Re-push" else "Push to GitHub")
             }
@@ -230,7 +230,7 @@ private fun ConnectionsTab(state: BuildUiState, vm: BuildViewModel) {
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Github, contentDescription = null)
+                    Icon(Icons.Filled.Code, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Text("GitHub", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 }
