@@ -1,5 +1,6 @@
 package com.glm.aiapp.ui
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
@@ -15,10 +16,11 @@ import com.glm.aiapp.ui.components.AppBottomBar
 import com.glm.aiapp.ui.components.AppTopBar
 import com.glm.aiapp.ui.navigation.Destination
 import com.glm.aiapp.ui.navigation.bottomTabs
-import com.glm.aiapp.ui.screens.chat.ChatScreen
 import com.glm.aiapp.ui.screens.build.BuildScreen
+import com.glm.aiapp.ui.screens.chat.ChatScreen
 import com.glm.aiapp.ui.screens.finetune.FineTuneScreen
 import com.glm.aiapp.ui.screens.image.ImageScreen
+import com.glm.aiapp.ui.screens.login.LoginScreen
 import com.glm.aiapp.ui.screens.reader.ReaderScreen
 import com.glm.aiapp.ui.screens.search.SearchScreen
 import com.glm.aiapp.ui.screens.settings.SettingsScreen
@@ -40,6 +42,13 @@ fun AppRoot() {
     }
 
     GLMTheme(useDark = useDark) {
+        // Gate: show login screen until user is authenticated
+        val sessionToken = settings?.sessionToken.orEmpty()
+        if (sessionToken.isBlank()) {
+            LoginScreen()
+            return@GLMTheme
+        }
+
         val navController = rememberNavController()
         val currentBackStack by navController.currentBackStackEntryAsState()
         val currentRoute = currentBackStack?.destination?.route

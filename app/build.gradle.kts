@@ -108,6 +108,12 @@ dependencies {
     // Navigation
     implementation(libs.androidx.navigation.compose)
 
+    // Google Sign-In
+    implementation(libs.play.services.auth)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
