@@ -84,8 +84,8 @@ data class AppSettings(
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
 /**
- * Default platform URL — points at the Pullarao AppForge web app.
+ * Default platform URL — the live Pullarao AppForge deployment on Vercel.
  * Students log in with email + password and never need an API key.
  * Override this in Settings to point at your own deployment.
  */
-const val DEFAULT_PLATFORM_URL = "https://pullarao-appforge.vercel.app"
+const val DEFAULT_PLATFORM_URL = "https://pullarao-appforge-nine.vercel.app"
