@@ -34,9 +34,8 @@ android {
     }
 
     signingConfigs {
-        create("debug") {
-            // Use a committed debug keystore so the SHA-1 is stable across CI builds.
-            // This is REQUIRED for Google Sign-In — the SHA-1 must be registered in Firebase.
+        // Configure the existing debug signing config to use our stable keystore
+        getByName("debug") {
             storeFile = file("debug.keystore")
             storePassword = "android"
             keyAlias = "androiddebugkey"
