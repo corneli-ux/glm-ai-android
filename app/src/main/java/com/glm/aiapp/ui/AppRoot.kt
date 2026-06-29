@@ -16,6 +16,7 @@ import com.glm.aiapp.ui.components.AppTopBar
 import com.glm.aiapp.ui.navigation.Destination
 import com.glm.aiapp.ui.navigation.bottomTabs
 import com.glm.aiapp.ui.screens.chat.ChatScreen
+import com.glm.aiapp.ui.screens.build.BuildScreen
 import com.glm.aiapp.ui.screens.finetune.FineTuneScreen
 import com.glm.aiapp.ui.screens.image.ImageScreen
 import com.glm.aiapp.ui.screens.reader.ReaderScreen
@@ -71,6 +72,7 @@ fun AppRoot() {
                 modifier = Modifier.padding(innerPadding)
             ) {
                 composable(Destination.Chat.route) { ChatScreen() }
+                composable(Destination.Build.route) { BuildScreen() }
                 composable(Destination.Vision.route) { VisionScreen() }
                 composable(Destination.Image.route) { ImageScreen() }
                 composable(Destination.Video.route) { VideoScreen() }
