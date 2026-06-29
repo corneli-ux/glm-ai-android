@@ -56,14 +56,14 @@ fun LoginScreen(vm: LoginViewModel = hiltViewModel()) {
                             if (task.isSuccessful) {
                                 val firebaseUser = task.result?.user
                                 if (firebaseUser != null) {
-                                    // Get Firebase ID token to send to our platform
                                     firebaseUser.getIdToken(true)
                                         .addOnCompleteListener { tokenTask ->
                                             if (tokenTask.isSuccessful) {
                                                 val firebaseToken = tokenTask.result?.token
                                                 if (firebaseToken != null) {
-                                                    // Send Firebase token to our platform
                                                     vm.loginWithGoogle(firebaseToken)
+                                                } else {
+                                                    vm.clearError()
                                                 }
                                             } else {
                                                 vm.clearError()
@@ -74,8 +74,19 @@ fun LoginScreen(vm: LoginViewModel = hiltViewModel()) {
                                 vm.clearError()
                             }
                         }
+                } else {
+                    // Got an account but no ID token — usually means web client ID is wrong
+                    vm.clearError()
                 }
-            } catch (_: Exception) { }
+            } catch (e: ApiException) {
+                val msg = when (e.statusCode) {
+                    10 -> "Google Sign-In config error. Check: 1) package name is com.glm.aiapp, 2) SHA-1 88:3F:61:28:7B:28:90:28:67:65:A9:61:9E:A3:C1:5B:25:B0:84:2D is in Firebase Console"
+                    12500 -> "Google Play services error. Update Google Play services on your device."
+                    12501 -> "Sign-in cancelled"
+                    else -> "Google Sign-In error (code ${e.statusCode}): ${e.message}"
+                }
+                vm.setError(msg)
+            }
         }
     }
 

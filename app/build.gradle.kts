@@ -47,8 +47,9 @@ android {
     buildTypes {
         debug {
             isMinifyEnabled = false
-            applicationIdSuffix = ".debug"
-            versionNameSuffix = "-debug"
+            // NOTE: Do NOT use applicationIdSuffix here — Firebase Google Sign-In
+            // requires the package name to match exactly what's registered in
+            // the Firebase Console (com.glm.aiapp).
         }
         release {
             isMinifyEnabled = true

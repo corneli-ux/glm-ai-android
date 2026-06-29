@@ -46,6 +46,7 @@ class LoginViewModel @Inject constructor(
     fun setEmail(v: String) { _state.value = _state.value.copy(email = v) }
     fun setPassword(v: String) { _state.value = _state.value.copy(password = v) }
     fun clearError() { _state.value = _state.value.copy(error = null) }
+    fun setError(msg: String) { _state.value = _state.value.copy(error = msg, isSubmitting = false) }
 
     private suspend fun getPlatformUrl(): String {
         return settingsRepo.settings.first().platformUrl.trimEnd('/')
