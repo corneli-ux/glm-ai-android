@@ -73,14 +73,13 @@ class ChatRepositoryImpl @Inject constructor(
         onThinking: (String) -> Unit
     ): Message {
         val settings = settingsRepo.settings.first()
-        if (settings.sessionToken.isBlank()) {
-            error("Not signed in.")
-        }
+        if (settings.sessionToken.isBlank()) error("Not signed in.")
+
         val conv = db.conversationDao().getById(conversationId)
             ?: error("Conversation not found")
         val history = db.messageDao().observeByConversation(conversationId).first()
 
-        // Build messages — filter out empty content (from previous failed attempts)
+        // Build messages — filter out empty content
         val messagesJson = JSONArray().apply {
             if (conv.systemPrompt.isNotBlank()) {
                 put(JSONObject().put("role", "system").put("content", conv.systemPrompt))
@@ -101,7 +100,7 @@ class ChatRepositoryImpl @Inject constructor(
         val platformUrl = settings.platformUrl.trimEnd('/')
         val url = "$platformUrl/api/glm/chat-sync"
 
-        // Use non-streaming HTTP request — more reliable on mobile than SSE
+        // Make the HTTP call on IO dispatcher — the ENTIRE call including response parsing
         val content = withContext(Dispatchers.IO) {
             val req = Request.Builder()
                 .url(url)
@@ -122,29 +121,17 @@ class ChatRepositoryImpl @Inject constructor(
                     error(msg)
                 }
                 if (body.isBlank()) error("Server returned empty response")
-
                 val json = JSONObject(body)
                 json.optString("content", "")
             }
         }
 
-        if (content.isBlank()) {
-            error("Pullarao returned an empty response. Please try again.")
-        }
+        if (content.isBlank()) error("Pullarao returned an empty response.")
 
-        // Simulate streaming by emitting the response in chunks for UX
-        val words = content.split(" ")
-        val chunkSize = maxOf(1, words.size / 20) // ~20 chunks
-        var current = ""
-        for (i in words.indices) {
-            current = if (current.isEmpty()) words[i] else "$current ${words[i]}"
-            if (i % chunkSize == 0 || i == words.lastIndex) {
-                onToken(if (i == words.lastIndex) content else current) // emit accumulated text
-                // Small delay for visual effect
-                Thread.sleep(20)
-            }
-        }
+        // Emit the full response as a single token — no simulated streaming, no Thread.sleep
+        onToken(content)
 
+        // Save assistant message to DB
         val msg = Message(
             id = UUID.randomUUID().toString(),
             conversationId = conversationId,
@@ -157,8 +144,6 @@ class ChatRepositoryImpl @Inject constructor(
         appendMessage(conversationId, msg)
         return msg
     }
-
-    // ---- Mappers ----
 
     private fun ConversationEntity.toDomain() = Conversation(
         id = id, title = title, systemPrompt = systemPrompt, model = model,
