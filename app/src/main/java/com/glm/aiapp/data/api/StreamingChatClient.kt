@@ -1,8 +1,10 @@
 package com.glm.aiapp.data.api
 
 import com.glm.aiapp.data.dto.StreamChunk
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import okhttp3.MediaType.Companion.toMediaType
@@ -60,7 +62,7 @@ class StreamingChatClient @Inject constructor(
         } catch (t: Throwable) {
             close(t)
         }
-    }
+    }.flowOn(Dispatchers.IO)
 
     /**
      * SSE reader for the platform proxy. Emits each `data: {...}` line as a
@@ -103,7 +105,7 @@ class StreamingChatClient @Inject constructor(
         } catch (t: Throwable) {
             close(t)
         }
-    }
+    }.flowOn(Dispatchers.IO)
 }
 
 class ServerSentEventException(message: String) : RuntimeException(message)

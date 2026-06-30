@@ -9,7 +9,9 @@ import com.glm.aiapp.data.dto.*
 import com.glm.aiapp.domain.model.*
 import com.glm.aiapp.domain.repository.ChatRepository
 import com.glm.aiapp.domain.repository.SettingsRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 import java.util.UUID
