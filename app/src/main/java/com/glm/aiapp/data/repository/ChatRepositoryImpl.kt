@@ -102,21 +102,30 @@ class ChatRepositoryImpl @Inject constructor(
 
         val content = StringBuilder()
 
-        // SSE streaming — no timeout issues, tokens arrive as GLM generates them
-        streamClient.streamAuthorized(url, settings.sessionToken, requestBody).collect { evt ->
-            val type = evt.optString("type", "")
-            when (type) {
-                "token" -> {
-                    val tok = evt.optString("content", "")
-                    if (tok.isNotEmpty()) { onToken(tok); content.append(tok) }
+        // SSE streaming — tokens arrive as GLM generates them
+        try {
+            streamClient.streamAuthorized(url, settings.sessionToken, requestBody).collect { evt ->
+                val type = evt.optString("type", "")
+                when (type) {
+                    "token" -> {
+                        val tok = evt.optString("content", "")
+                        if (tok.isNotEmpty()) { onToken(tok); content.append(tok) }
+                    }
+                    "thinking" -> {
+                        val th = evt.optString("content", "")
+                        if (th.isNotEmpty()) { onThinking(th) }
+                    }
+                    "done" -> { /* stream finished */ }
+                    "error" -> error(evt.optString("message", "Chat request failed"))
                 }
-                "thinking" -> {
-                    val th = evt.optString("content", "")
-                    if (th.isNotEmpty()) { onThinking(th) }
-                }
-                "done" -> { /* stream finished */ }
-                "error" -> error(evt.optString("message", "Chat request failed"))
             }
+        } catch (e: Exception) {
+            // If the stream was interrupted (timeout, network error) but we already
+            // have content, save what we have instead of throwing an error.
+            if (content.toString().isBlank()) {
+                throw e
+            }
+            // Content was received but stream was cut — save partial response
         }
 
         if (content.toString().isBlank()) error("Pullarao returned an empty response.")

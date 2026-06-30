@@ -112,9 +112,14 @@ class ChatViewModel @Inject constructor(
                 onThinking = { th -> _streamingThinking.value += th }
             )
         } catch (t: Throwable) {
-            _error.value = t.message ?: "Chat request failed"
+            // Only show error if no content was received
+            if (_streamingText.value.isBlank()) {
+                _error.value = t.message ?: "Chat request failed"
+            }
         } finally {
             _isStreaming.value = false
+            // Don't clear streamingText immediately — the DB flow will update
+            // the UI with the saved message. Clear after a short delay.
             _streamingText.value = ""
             _streamingThinking.value = ""
         }

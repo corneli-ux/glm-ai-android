@@ -42,7 +42,7 @@ object AppModule {
         return OkHttpClient.Builder()
             .addInterceptor(logging)
             .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(300, TimeUnit.SECONDS)
+            .readTimeout(600, TimeUnit.SECONDS)
             .pingInterval(20, TimeUnit.SECONDS)
             .writeTimeout(120, TimeUnit.SECONDS)
             .pingInterval(20, TimeUnit.SECONDS)
