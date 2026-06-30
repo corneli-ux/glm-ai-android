@@ -124,9 +124,11 @@ class ChatRepositoryImpl @Inject constructor(
                 val json = JSONObject(body)
                 val content = json.optString("content", "")
                 val reasoning = json.optString("reasoning", "")
-                Pair(content, reasoning)
+                content to reasoning
             }
         }
+
+        val (content, reasoning) = result
 
         if (content.isBlank()) error("Pullarao returned an empty response.")
 
