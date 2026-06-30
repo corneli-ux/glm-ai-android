@@ -105,6 +105,3 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 google-services = { id = "com.google.gms.google-services", version = "4.4.2" }
-
-# Markdown rendering
-compose-markdown = { module = "com.github.jeziellago:compose-markdown", version = "0.5.7" }
