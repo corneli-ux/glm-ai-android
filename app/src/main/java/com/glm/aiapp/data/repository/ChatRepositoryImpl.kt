@@ -68,13 +68,17 @@ class ChatRepositoryImpl @Inject constructor(
             ?: error("Conversation $conversationId not found")
         val history = db.messageDao().observeByConversation(conversationId).first()
 
-        // Build the messages array using org.json (simpler than kotlinx.serialization for this case)
+        // Build the messages array using org.json
+        // FILTER OUT empty messages — previous failed attempts may have saved
+        // assistant messages with blank content, which GLM rejects
         val messagesJson = org.json.JSONArray().apply {
             if (conv.systemPrompt.isNotBlank()) {
                 put(org.json.JSONObject().put("role", "system").put("content", conv.systemPrompt))
             }
             history.forEach { m ->
-                put(org.json.JSONObject().put("role", m.role.lowercase()).put("content", m.content))
+                if (m.content.isNotBlank()) {
+                    put(org.json.JSONObject().put("role", m.role.lowercase()).put("content", m.content))
+                }
             }
         }
         val requestBody = org.json.JSONObject()
