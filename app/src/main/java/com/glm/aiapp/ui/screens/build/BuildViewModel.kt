@@ -69,7 +69,7 @@ class BuildViewModel @Inject constructor(
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(120, TimeUnit.SECONDS)
+        .readTimeout(180, TimeUnit.SECONDS)
         .build()
 
     fun setName(v: String) { _state.value = _state.value.copy(newName = v) }
@@ -98,7 +98,7 @@ class BuildViewModel @Inject constructor(
                             .get().build()
                     ).execute().use { it.body?.string() ?: "[]" }
                 }
-                val json = JSONObject(res)
+                val json = try { JSONObject(res) } catch (_: Exception) { JSONObject().put("projects", JSONArray()) }
                 val arr = json.optJSONArray("projects") ?: JSONArray()
                 val projects = (0 until arr.length()).map { i ->
                     val p = arr.getJSONObject(i)
@@ -131,7 +131,7 @@ class BuildViewModel @Inject constructor(
                             .get().build()
                     ).execute().use { it.body?.string() ?: "{}" }
                 }
-                val json = JSONObject(res)
+                val json = try { JSONObject(res) } catch (_: Exception) { JSONObject().put("projects", JSONArray()) }
                 _state.value = _state.value.copy(
                     githubConnected = json.optBoolean("connected", false),
                     githubLogin = json.optString("githubLogin", null)
@@ -151,7 +151,7 @@ class BuildViewModel @Inject constructor(
                             .get().build()
                     ).execute().use { it.body?.string() ?: "{}" }
                 }
-                val json = JSONObject(res)
+                val json = try { JSONObject(res) } catch (_: Exception) { JSONObject().put("projects", JSONArray()) }
                 val arr = json.optJSONArray("targets") ?: JSONArray()
                 val targets = (0 until arr.length()).map { arr.getJSONObject(it).getString("provider") }
                 _state.value = _state.value.copy(deployTargets = targets)
@@ -172,7 +172,7 @@ class BuildViewModel @Inject constructor(
                             .header("Content-Type", "application/json")
                             .post(JSONObject().put("pat", pat).toString().toRequestBody("application/json".toMediaType()))
                             .build()
-                    ).execute().use {}
+                    ).execute().use { r -> if (!r.isSuccessful) { val b = r.body?.string() ?: ""; throw RuntimeException("HTTP ${r.code}: ${b.take(100)}") } }
                 }
                 _state.value = _state.value.copy(githubPat = "")
                 loadGithubStatus()
@@ -199,7 +199,7 @@ class BuildViewModel @Inject constructor(
                                 .toString()
                                 .toRequestBody("application/json".toMediaType()))
                             .build()
-                    ).execute().use {}
+                    ).execute().use { r -> if (!r.isSuccessful) { val b = r.body?.string() ?: ""; throw RuntimeException("HTTP ${r.code}: ${b.take(100)}") } }
                 }
                 _state.value = _state.value.copy(deployToken = "")
                 loadDeployTargets()
@@ -233,8 +233,8 @@ class BuildViewModel @Inject constructor(
                             .build()
                     ).execute().use { r ->
                         val body = r.body?.string() ?: ""
-                        if (!r.isSuccessful) throw RuntimeException(JSONObject(body).optString("error", "HTTP ${r.code}"))
-                        JSONObject(body)
+                        if (!r.isSuccessful) { val msg = if (body.isNotBlank()) { try { JSONObject(body).optString("error", "HTTP ${r.code}") } catch (_: Exception) { "Server error (HTTP ${r.code})" } } else { "Server error (HTTP ${r.code}, empty response)" }; throw RuntimeException(msg) }
+                        if (body.isBlank()) throw RuntimeException("Server returned empty response") else JSONObject(body)
                     }
                 }
                 _state.value = _state.value.copy(
@@ -263,8 +263,8 @@ class BuildViewModel @Inject constructor(
                             .build()
                     ).execute().use { r ->
                         val body = r.body?.string() ?: ""
-                        if (!r.isSuccessful) throw RuntimeException(JSONObject(body).optString("error", "HTTP ${r.code}"))
-                        JSONObject(body)
+                        if (!r.isSuccessful) { val msg = if (body.isNotBlank()) { try { JSONObject(body).optString("error", "HTTP ${r.code}") } catch (_: Exception) { "Server error (HTTP ${r.code})" } } else { "Server error (HTTP ${r.code}, empty response)" }; throw RuntimeException(msg) }
+                        if (body.isBlank()) throw RuntimeException("Server returned empty response") else JSONObject(body)
                     }
                 }
                 _state.value = _state.value.copy(isPushing = false)
@@ -293,8 +293,8 @@ class BuildViewModel @Inject constructor(
                             .build()
                     ).execute().use { r ->
                         val body = r.body?.string() ?: ""
-                        if (!r.isSuccessful) throw RuntimeException(JSONObject(body).optString("error", "HTTP ${r.code}"))
-                        JSONObject(body)
+                        if (!r.isSuccessful) { val msg = if (body.isNotBlank()) { try { JSONObject(body).optString("error", "HTTP ${r.code}") } catch (_: Exception) { "Server error (HTTP ${r.code})" } } else { "Server error (HTTP ${r.code}, empty response)" }; throw RuntimeException(msg) }
+                        if (body.isBlank()) throw RuntimeException("Server returned empty response") else JSONObject(body)
                     }
                 }
                 _state.value = _state.value.copy(isDeploying = false)
@@ -316,7 +316,7 @@ class BuildViewModel @Inject constructor(
                             .get().build()
                     ).execute().use { it.body?.string() ?: "{}" }
                 }
-                val json = JSONObject(res).getJSONObject("project")
+                val json = try { JSONObject(res) } catch (_: Exception) { JSONObject().put("projects", JSONArray()) }.getJSONObject("project")
                 val filesArr = json.optJSONArray("files") ?: JSONArray()
                 val files = (0 until filesArr.length()).map {
                     val f = filesArr.getJSONObject(it)
