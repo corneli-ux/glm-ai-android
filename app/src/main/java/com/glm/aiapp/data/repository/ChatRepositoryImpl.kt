@@ -98,51 +98,35 @@ class ChatRepositoryImpl @Inject constructor(
             .toString()
 
         val platformUrl = settings.platformUrl.trimEnd('/')
-        val url = "$platformUrl/api/glm/chat-sync"
+        val url = "$platformUrl/api/glm/chat"
 
-        // Make the HTTP call on IO dispatcher — the ENTIRE call including response parsing
-        val (content, reasoning) = withContext(Dispatchers.IO) {
-            val req = Request.Builder()
-                .url(url)
-                .header("Authorization", "Bearer ${settings.sessionToken}")
-                .header("Content-Type", "application/json")
-                .post(requestBody.toRequestBody("application/json".toMediaType()))
-                .build()
+        val content = StringBuilder()
 
-            httpClient.newCall(req).execute().use { res ->
-                val body = res.body?.string() ?: ""
-                if (!res.isSuccessful) {
-                    val msg = if (body.isNotBlank()) {
-                        try { JSONObject(body).optString("error", "HTTP ${res.code}") }
-                        catch (_: Exception) { "Server error (HTTP ${res.code})" }
-                    } else {
-                        "Server error (HTTP ${res.code})"
-                    }
-                    error(msg)
+        // SSE streaming — no timeout issues, tokens arrive as GLM generates them
+        streamClient.streamAuthorized(url, settings.sessionToken, requestBody).collect { evt ->
+            val type = evt.optString("type", "")
+            when (type) {
+                "token" -> {
+                    val tok = evt.optString("content", "")
+                    if (tok.isNotEmpty()) { onToken(tok); content.append(tok) }
                 }
-                if (body.isBlank()) error("Server returned empty response")
-                val json = JSONObject(body)
-                val c = json.optString("content", "")
-                val r = json.optString("reasoning", "")
-                c to r
+                "thinking" -> {
+                    val th = evt.optString("content", "")
+                    if (th.isNotEmpty()) { onThinking(th) }
+                }
+                "done" -> { /* stream finished */ }
+                "error" -> error(evt.optString("message", "Chat request failed"))
             }
         }
 
-        if (content.isBlank()) error("Pullarao returned an empty response.")
+        if (content.toString().isBlank()) error("Pullarao returned an empty response.")
 
-        // Show reasoning first (if available), then the response
-        if (reasoning.isNotBlank()) {
-            onThinking(reasoning)
-        }
-        onToken(content)
-
-        // Save assistant message to DB
         val msg = Message(
             id = UUID.randomUUID().toString(),
             conversationId = conversationId,
             role = Role.ASSISTANT,
-            content = content,
-            thinking = reasoning.ifBlank { null },
+            content = content.toString(),
+            thinking = null,
             tokens = null,
             createdAt = System.currentTimeMillis()
         )
