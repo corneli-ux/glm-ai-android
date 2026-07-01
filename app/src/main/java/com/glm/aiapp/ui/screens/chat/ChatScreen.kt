@@ -1,10 +1,12 @@
 package com.glm.aiapp.ui.screens.chat
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -198,7 +200,7 @@ private fun MessageBubble(message: Message) {
             }
             Spacer(Modifier.width(8.dp))
         }
-        Column(modifier = Modifier.widthIn(max = 280.dp)) {
+        Column(modifier = Modifier.widthIn(max = 320.dp)) {
             message.thinking?.takeIf { it.isNotBlank() }?.let {
                 Surface(
                     color = Color(0xFF111111),
@@ -218,11 +220,9 @@ private fun MessageBubble(message: Message) {
                 if (isUser) {
                     Text(message.content, color = Color.Black, fontSize = 14.sp, modifier = Modifier.padding(12.dp))
                 } else {
-                    MarkdownText(
-                        markdown = message.content,
-                        style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
-                        modifier = Modifier.padding(12.dp)
-                    )
+                    Box(Modifier.padding(12.dp)) {
+                        MessageContent(message.content, Color.White)
+                    }
                 }
             }
         }
@@ -239,7 +239,7 @@ private fun AssistantBubble(content: String, thinking: String) {
             Text("P1", color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.width(8.dp))
-        Column(modifier = Modifier.widthIn(max = 280.dp)) {
+        Column(modifier = Modifier.widthIn(max = 320.dp)) {
             if (thinking.isNotBlank()) {
                 Surface(color = Color(0xFF111111), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)) {
                     Column(Modifier.padding(10.dp)) {
@@ -250,12 +250,98 @@ private fun AssistantBubble(content: String, thinking: String) {
             }
             if (content.isNotBlank()) {
                 Surface(color = Color(0xFF1A1A1A), shape = RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp)) {
-                    MarkdownText(
-                        markdown = content,
-                        style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
-                        modifier = Modifier.padding(12.dp)
-                    )
+                    Box(Modifier.padding(12.dp)) {
+                        MessageContent(content, Color.White)
+                    }
                 }
+            }
+        }
+    }
+}
+
+// ---- Code-aware content rendering ----
+//
+// MarkdownText (dev.jeziellago:compose-markdown) wraps everything — prose
+// AND code — to the container width with no horizontal scroll for long
+// lines. Inside a narrow chat bubble, that turns any real code block into
+// an unreadable wall of character-by-character wrapping (exactly what a
+// generated AndroidManifest/XML snippet looked like before this fix).
+//
+// Fix: split fenced code blocks out ourselves before handing content to
+// MarkdownText — prose still renders through the library as before, but
+// code blocks get their own composable with a monospace font and
+// horizontal scroll, so long lines scroll instead of mangling into
+// fragments. This only uses stock Jetpack Compose APIs (Regex,
+// horizontalScroll, FontFamily.Monospace) — nothing from the third-party
+// library's internals, which aren't customizable this deeply anyway.
+
+private val CODE_FENCE_REGEX = Regex("```([a-zA-Z0-9_+-]*)\\n([\\s\\S]*?)```")
+
+private sealed class ContentSegment {
+    data class Prose(val markdown: String) : ContentSegment()
+    data class Code(val language: String, val code: String) : ContentSegment()
+}
+
+private fun splitContentSegments(content: String): List<ContentSegment> {
+    val segments = mutableListOf<ContentSegment>()
+    var lastEnd = 0
+    for (match in CODE_FENCE_REGEX.findAll(content)) {
+        if (match.range.first > lastEnd) {
+            val prose = content.substring(lastEnd, match.range.first)
+            if (prose.isNotBlank()) segments.add(ContentSegment.Prose(prose))
+        }
+        segments.add(ContentSegment.Code(match.groupValues[1], match.groupValues[2].trimEnd('\n')))
+        lastEnd = match.range.last + 1
+    }
+    if (lastEnd < content.length) {
+        val prose = content.substring(lastEnd)
+        if (prose.isNotBlank()) segments.add(ContentSegment.Prose(prose))
+    }
+    if (segments.isEmpty() && content.isNotBlank()) segments.add(ContentSegment.Prose(content))
+    return segments
+}
+
+@Composable
+private fun MessageContent(content: String, textColor: Color) {
+    val segments = remember(content) { splitContentSegments(content) }
+    Column {
+        segments.forEachIndexed { index, segment ->
+            if (index > 0) Spacer(Modifier.height(6.dp))
+            when (segment) {
+                is ContentSegment.Prose -> MarkdownText(
+                    markdown = segment.markdown,
+                    style = MaterialTheme.typography.bodyMedium.copy(color = textColor)
+                )
+                is ContentSegment.Code -> CodeBlock(segment.code, segment.language)
+            }
+        }
+    }
+}
+
+@Composable
+private fun CodeBlock(code: String, language: String) {
+    Surface(
+        color = Color(0xFF0D0D0D),
+        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column {
+            if (language.isNotBlank()) {
+                Text(
+                    language,
+                    color = Color(0xFF666666),
+                    fontSize = 10.sp,
+                    modifier = Modifier.padding(horizontal = 10.dp, top = 6.dp)
+                )
+            }
+            Row(Modifier.horizontalScroll(rememberScrollState()).padding(10.dp)) {
+                Text(
+                    code,
+                    color = Color(0xFFDDDDDD),
+                    fontSize = 12.sp,
+                    fontFamily = FontFamily.Monospace,
+                    lineHeight = 17.sp
+                )
             }
         }
     }
