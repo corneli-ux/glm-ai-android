@@ -104,12 +104,18 @@ object AppModule {
     ): ImageRepository = ImageRepositoryImpl(platform, db, settings)
 
     @Provides @Singleton
-    fun provideVideoRepository(api: GlmApi, db: AppDatabase): VideoRepository =
-        VideoRepositoryImpl(api, db)
+    fun provideVideoRepository(
+        platform: com.glm.aiapp.data.api.PlatformClient,
+        db: AppDatabase,
+        settings: SettingsRepository
+    ): VideoRepository = VideoRepositoryImpl(platform, db, settings)
 
     @Provides @Singleton
-    fun provideSpeechRepository(api: GlmApi, db: AppDatabase): SpeechRepository =
-        SpeechRepositoryImpl(api, db)
+    fun provideSpeechRepository(
+        platform: com.glm.aiapp.data.api.PlatformClient,
+        db: AppDatabase,
+        settings: SettingsRepository
+    ): SpeechRepository = SpeechRepositoryImpl(platform, db, settings)
 
     @Provides @Singleton
     fun provideSearchRepository(

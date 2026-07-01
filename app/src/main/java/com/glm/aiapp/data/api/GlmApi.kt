@@ -7,8 +7,16 @@ import okhttp3.ResponseBody
 import retrofit2.http.*
 
 /**
- * Retrofit interface for the GLM API (OpenAI-compatible endpoints).
- * Base URL is configurable from Settings — defaults to Zhipu's hosted endpoint.
+ * Retrofit interface for the raw GLM API (OpenAI-compatible endpoints),
+ * pointed directly at Zhipu's `open.bigmodel.cn`.
+ *
+ * NOTE: in production this app does NOT call Zhipu directly for any
+ * capability — see `PlatformClient` for the routes actually used. This
+ * interface documents the raw wire contract for reference (useful reading
+ * if you're implementing the same routes on your own backend), and exists
+ * as a hook for local development against a personal API key if you ever
+ * want to bypass the platform. Base URL is configurable from Settings —
+ * defaults to Zhipu's hosted endpoint.
  */
 interface GlmApi {
 

@@ -1,24 +1,29 @@
 package com.glm.aiapp.data.repository
 
 import android.util.Base64
-import com.glm.aiapp.data.api.GlmApi
+import com.glm.aiapp.data.api.PlatformClient
 import com.glm.aiapp.data.db.AppDatabase
 import com.glm.aiapp.data.db.TranscriptionEntity
 import com.glm.aiapp.data.db.VoiceClipEntity
-import com.glm.aiapp.data.dto.TtsRequest
 import com.glm.aiapp.domain.model.*
+import com.glm.aiapp.domain.repository.SettingsRepository
 import com.glm.aiapp.domain.repository.SpeechRepository
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * TTS/ASR — routed through the platform's `/api/glm/speech/*` proxy (see
+ * PlatformClient), not called directly against Zhipu. This keeps the
+ * GLM_API_KEY server-side, matching how vision/image/search already work.
+ */
 @Singleton
 class SpeechRepositoryImpl @Inject constructor(
-    private val api: GlmApi,
-    private val db: AppDatabase
+    private val platform: PlatformClient,
+    private val db: AppDatabase,
+    private val settingsRepo: SettingsRepository
 ) : SpeechRepository {
 
     override suspend fun synthesize(
@@ -27,17 +32,10 @@ class SpeechRepositoryImpl @Inject constructor(
         speed: Float,
         format: AudioFormat
     ): VoiceClip {
-        val body = api.textToSpeech(
-            TtsRequest(
-                input = text,
-                voice = voice.id,
-                speed = speed,
-                responseFormat = format.id,
-                stream = false
-            )
-        )
-        val bytes = body.bytes()
-        val base64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
+        val s = settingsRepo.settings.first()
+        if (s.sessionToken.isBlank()) error("Not signed in. Open Settings → Account → Sign in.")
+        val base64 = platform.synthesizeSpeech(s.platformUrl, s.sessionToken, text, voice.id, speed, format.id)
+        if (base64.isBlank()) error("Text-to-speech returned no audio")
         val entity = VoiceClipEntity(
             id = UUID.randomUUID().toString(),
             text = text,
@@ -53,16 +51,13 @@ class SpeechRepositoryImpl @Inject constructor(
     }
 
     override suspend fun transcribe(audioBase64: String, fileName: String): Transcription {
-        // Decode base64 → bytes → multipart body
+        val s = settingsRepo.settings.first()
+        if (s.sessionToken.isBlank()) error("Not signed in. Open Settings → Account → Sign in.")
         val bytes = Base64.decode(audioBase64, Base64.NO_WRAP)
-        val filePart = MultipartBody.Part.createFormData(
-            "file", fileName, bytes.toRequestBody()
-        )
-        val modelPart = "whisper-1".toRequestBody()
-        val response = api.speechToText(filePart, modelPart)
+        val text = platform.transcribeSpeech(s.platformUrl, s.sessionToken, bytes, fileName)
         val entity = TranscriptionEntity(
             id = UUID.randomUUID().toString(),
-            text = response.text,
+            text = text,
             fileName = fileName,
             durationMs = null,
             createdAt = System.currentTimeMillis()
