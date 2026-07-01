@@ -132,7 +132,7 @@ fun ChatScreen(vm: ChatViewModel = hiltViewModel()) {
                     enabled = input.isNotBlank() && !isStreaming,
                     modifier = Modifier.size(44.dp),
                     shape = RoundedCornerShape(50),
-                    colors = FilledIconButtonDefaults.colors(containerColor = Color.White, contentColor = Color.Black)
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.White, contentColor = Color.Black)
                 ) {
                     Icon(Icons.Filled.ArrowUpward, contentDescription = "Send", modifier = Modifier.size(20.dp))
                 }
