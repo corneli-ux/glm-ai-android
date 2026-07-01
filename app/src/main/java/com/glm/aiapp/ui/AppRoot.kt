@@ -23,7 +23,19 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.glm.aiapp.domain.model.Message
 import com.glm.aiapp.domain.model.Role
-import com.glm.aiapp.ui.screens.chat.ChatViewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.glm.aiapp.domain.model.ThemeMode
+import com.glm.aiapp.ui.navigation.Destination
+import com.glm.aiapp.ui.navigation.bottomTabs
+import com.glm.aiapp.ui.screens.build.BuildScreen
+import com.glm.aiapp.ui.screens.chat.ChatScreen
+import com.glm.aiapp.ui.screens.login.LoginScreen
+import com.glm.aiapp.ui.screens.search.SearchScreen
+import com.glm.aiapp.ui.screens.settings.SettingsScreen
+import com.glm.aiapp.ui.screens.vision.VisionScreen
 import com.glm.aiapp.ui.theme.GLMTheme
 import com.glm.aiapp.ui.theme.SettingsViewModel
 import dev.jeziellago.compose.markdowntext.MarkdownText
@@ -40,10 +52,10 @@ fun AppRoot() {
             return@GLMTheme
         }
 
-        val navController = androidx.navigation.compose.rememberNavController()
+        val navController = rememberNavController()
         val currentBackStack by navController.currentBackStackEntryAsState()
         val currentRoute = currentBackStack?.destination?.route
-        val tabs = com.glm.aiapp.ui.navigation.bottomTabs
+        val tabs = bottomTabs
         val tab = tabs.firstOrNull { it.destination.route == currentRoute }
 
         Scaffold(
@@ -77,9 +89,7 @@ fun AppRoot() {
                                     )
                                 },
                                 label = { Text(t.label, fontSize = 10.sp, color = if (selected) Color.White else Color(0xFF555555)) },
-                                colors = NavigationBarItemDefaults.colors(
-                                    indicatorColor = Color.Transparent
-                                )
+                                colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
                             )
                         }
                     }
@@ -87,25 +97,15 @@ fun AppRoot() {
             }
         ) { padding ->
             Box(Modifier.padding(padding).background(Color.Black)) {
-                androidx.navigation.compose.NavHost(
+                NavHost(
                     navController = navController,
-                    startDestination = com.glm.aiapp.ui.navigation.Destination.Chat.route
+                    startDestination = Destination.Chat.route
                 ) {
-                    androidx.navigation.compose.composable(com.glm.aiapp.ui.navigation.Destination.Chat.route) {
-                        com.glm.aiapp.ui.screens.chat.ChatScreen()
-                    }
-                    androidx.navigation.compose.composable(com.glm.aiapp.ui.navigation.Destination.Build.route) {
-                        com.glm.aiapp.ui.screens.build.BuildScreen()
-                    }
-                    androidx.navigation.compose.composable(com.glm.aiapp.ui.navigation.Destination.Vision.route) {
-                        com.glm.aiapp.ui.screens.vision.VisionScreen()
-                    }
-                    androidx.navigation.compose.composable(com.glm.aiapp.ui.navigation.Destination.Search.route) {
-                        com.glm.aiapp.ui.screens.search.SearchScreen()
-                    }
-                    androidx.navigation.compose.composable(com.glm.aiapp.ui.navigation.Destination.Settings.route) {
-                        com.glm.aiapp.ui.screens.settings.SettingsScreen()
-                    }
+                    composable(Destination.Chat.route) { ChatScreen() }
+                    composable(Destination.Build.route) { BuildScreen() }
+                    composable(Destination.Vision.route) { VisionScreen() }
+                    composable(Destination.Search.route) { SearchScreen() }
+                    composable(Destination.Settings.route) { SettingsScreen() }
                 }
             }
         }
