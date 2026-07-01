@@ -1,95 +1,112 @@
 package com.glm.aiapp.ui
 
 import androidx.compose.animation.*
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.*
+import androidx.compose.ui.draw.*
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import com.glm.aiapp.ui.components.AppBottomBar
-import com.glm.aiapp.ui.components.AppTopBar
-import com.glm.aiapp.ui.navigation.Destination
-import com.glm.aiapp.ui.navigation.bottomTabs
-import com.glm.aiapp.ui.screens.build.BuildScreen
-import com.glm.aiapp.ui.screens.chat.ChatScreen
-import com.glm.aiapp.ui.screens.finetune.FineTuneScreen
-import com.glm.aiapp.ui.screens.image.ImageScreen
-import com.glm.aiapp.ui.screens.login.LoginScreen
-import com.glm.aiapp.ui.screens.reader.ReaderScreen
-import com.glm.aiapp.ui.screens.search.SearchScreen
-import com.glm.aiapp.ui.screens.settings.SettingsScreen
-import com.glm.aiapp.ui.screens.speech.SpeechScreen
-import com.glm.aiapp.ui.screens.video.VideoScreen
-import com.glm.aiapp.ui.screens.vision.VisionScreen
+import com.glm.aiapp.domain.model.Message
+import com.glm.aiapp.domain.model.Role
+import com.glm.aiapp.ui.screens.chat.ChatViewModel
 import com.glm.aiapp.ui.theme.GLMTheme
 import com.glm.aiapp.ui.theme.SettingsViewModel
+import dev.jeziellago.compose.markdowntext.MarkdownText
+import kotlinx.coroutines.launch
 
 @Composable
 fun AppRoot() {
     val settingsVm: SettingsViewModel = hiltViewModel()
-    val settings by settingsVm.settings.collectAsStateWithLifecycle(initialValue = null)
 
-    val useDark = when (settings?.themeMode) {
-        null, com.glm.aiapp.domain.model.ThemeMode.SYSTEM -> androidx.compose.foundation.isSystemInDarkTheme()
-        com.glm.aiapp.domain.model.ThemeMode.LIGHT -> false
-        com.glm.aiapp.domain.model.ThemeMode.DARK -> true
-    }
-
-    GLMTheme(useDark = useDark) {
-        // Gate: show login screen until user is authenticated
-        val sessionToken = settings?.sessionToken.orEmpty()
+    GLMTheme(useDark = true) {
+        val sessionToken = settingsVm.settings.collectAsStateWithLifecycle(initialValue = null).value?.sessionToken.orEmpty()
         if (sessionToken.isBlank()) {
-            LoginScreen()
+            com.glm.aiapp.ui.screens.login.LoginScreen()
             return@GLMTheme
         }
 
-        val navController = rememberNavController()
+        val navController = androidx.navigation.compose.rememberNavController()
         val currentBackStack by navController.currentBackStackEntryAsState()
         val currentRoute = currentBackStack?.destination?.route
-        val tab = bottomTabs.firstOrNull { it.destination.route == currentRoute }
+        val tabs = com.glm.aiapp.ui.navigation.bottomTabs
+        val tab = tabs.firstOrNull { it.destination.route == currentRoute }
 
         Scaffold(
-            topBar = {
-                if (tab != null) AppTopBar(title = tab.destination.title, showBack = false)
-            },
+            containerColor = Color.Black,
+            contentColor = Color.White,
             bottomBar = {
                 if (tab != null) {
-                    AppBottomBar(
-                        currentRoute = currentRoute,
-                        onSelect = { route ->
-                            if (route != currentRoute) {
-                                navController.navigate(route) {
-                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
+                    NavigationBar(
+                        containerColor = Color(0xFF0A0A0A),
+                        contentColor = Color.White
+                    ) {
+                        tabs.forEach { t ->
+                            val selected = t.destination.route == currentRoute
+                            NavigationBarItem(
+                                selected = selected,
+                                onClick = {
+                                    if (t.destination.route != currentRoute) {
+                                        navController.navigate(t.destination.route) {
+                                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
+                                },
+                                icon = {
+                                    Icon(
+                                        imageVector = if (selected) t.selectedIcon else t.unselectedIcon,
+                                        contentDescription = t.label,
+                                        modifier = Modifier.size(22.dp),
+                                        tint = if (selected) Color.White else Color(0xFF555555)
+                                    )
+                                },
+                                label = { Text(t.label, fontSize = 10.sp, color = if (selected) Color.White else Color(0xFF555555)) },
+                                colors = NavigationBarItemDefaults.colors(
+                                    indicatorColor = Color.Transparent
+                                )
+                            )
                         }
-                    )
+                    }
                 }
             }
-        ) { innerPadding: PaddingValues ->
-            NavHost(
-                navController = navController,
-                startDestination = Destination.Chat.route,
-                modifier = Modifier.padding(innerPadding)
-            ) {
-                composable(Destination.Chat.route) { ChatScreen() }
-                composable(Destination.Build.route) { BuildScreen() }
-                composable(Destination.Vision.route) { VisionScreen() }
-                composable(Destination.Image.route) { ImageScreen() }
-                composable(Destination.Video.route) { VideoScreen() }
-                composable(Destination.Speech.route) { SpeechScreen() }
-                composable(Destination.Search.route) { SearchScreen() }
-                composable(Destination.Reader.route) { ReaderScreen() }
-                composable(Destination.FineTune.route) { FineTuneScreen() }
-                composable(Destination.Settings.route) { SettingsScreen() }
+        ) { padding ->
+            Box(Modifier.padding(padding).background(Color.Black)) {
+                androidx.navigation.compose.NavHost(
+                    navController = navController,
+                    startDestination = com.glm.aiapp.ui.navigation.Destination.Chat.route
+                ) {
+                    androidx.navigation.compose.composable(com.glm.aiapp.ui.navigation.Destination.Chat.route) {
+                        com.glm.aiapp.ui.screens.chat.ChatScreen()
+                    }
+                    androidx.navigation.compose.composable(com.glm.aiapp.ui.navigation.Destination.Build.route) {
+                        com.glm.aiapp.ui.screens.build.BuildScreen()
+                    }
+                    androidx.navigation.compose.composable(com.glm.aiapp.ui.navigation.Destination.Vision.route) {
+                        com.glm.aiapp.ui.screens.vision.VisionScreen()
+                    }
+                    androidx.navigation.compose.composable(com.glm.aiapp.ui.navigation.Destination.Search.route) {
+                        com.glm.aiapp.ui.screens.search.SearchScreen()
+                    }
+                    androidx.navigation.compose.composable(com.glm.aiapp.ui.navigation.Destination.Settings.route) {
+                        com.glm.aiapp.ui.screens.settings.SettingsScreen()
+                    }
+                }
             }
         }
     }
