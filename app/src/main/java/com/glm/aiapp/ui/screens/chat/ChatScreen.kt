@@ -331,7 +331,7 @@ private fun CodeBlock(code: String, language: String) {
                     language,
                     color = Color(0xFF666666),
                     fontSize = 10.sp,
-                    modifier = Modifier.padding(horizontal = 10.dp, top = 6.dp)
+                    modifier = Modifier.padding(start = 10.dp, top = 6.dp, end = 10.dp)
                 )
             }
             Row(Modifier.horizontalScroll(rememberScrollState()).padding(10.dp)) {
