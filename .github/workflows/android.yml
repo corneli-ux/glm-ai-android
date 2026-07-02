@@ -45,7 +45,28 @@ jobs:
         run: gradle wrapper --gradle-version 8.10.2 --distribution-type bin
 
       - name: Build debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        run: |
+          set +e
+          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee build-output.log
+          BUILD_EXIT=${PIPESTATUS[0]}
+          if [ "$BUILD_EXIT" -ne 0 ]; then
+            {
+              echo "## ❌ Build failed — actual error"
+              echo ""
+              echo '```'
+              grep -E "^e: |error:|FAILURE|What went wrong|Caused by|Execution failed" build-output.log | head -60
+              echo '```'
+              echo ""
+              echo "<details><summary>Last 150 lines of full output</summary>"
+              echo ""
+              echo '```'
+              tail -150 build-output.log
+              echo '```'
+              echo "</details>"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit $BUILD_EXIT
+        shell: bash
 
       - name: Print signing SHA-1 (for Firebase Console)
         if: always()
